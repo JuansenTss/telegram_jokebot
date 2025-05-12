@@ -1,4 +1,5 @@
 import random
+import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 
@@ -15,7 +16,7 @@ async def joke(update: Update, context: CallbackContext):
 
 # Main bot setup
 def main():
-    TOKEN = "8074250419:AAFCrIM9t-VmLqQeJZ8rTyHaJv-8evF8mXA"
+    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("joke", joke))
