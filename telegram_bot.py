@@ -1,27 +1,30 @@
-import random
+import torch
 import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
+from train_model import JokeModel, joke_to_tensor, vocab_size  # Import AI model functions
 
-# List of jokes
-jokes = [
-    "Why don’t skeletons fight each other? Because they don’t have the guts!",
-    "Why did the scarecrow win an award? Because he was outstanding in his field!",
-    "What do you call fake spaghetti? An impasta!"
-]
+# Load the trained AI model
+model = JokeModel(vocab_size, embed_size=128, hidden_size=256, output_size=100)
+model.load_state_dict(torch.load("joke_model.pth"))
+model.eval()  # Set model to evaluation mode
 
-# Function to send jokes
+# Function to generate AI jokes
 async def joke(update: Update, context: CallbackContext):
-    await update.message.reply_text(random.choice(jokes))
+    input_tensor = joke_to_tensor("Why did the chicken ", vocab_size)  # Example setup
+    output = model(input_tensor.unsqueeze(0))
+    predicted_char = chr(output.argmax().item())
+    generated_joke = "Why did the chicken " + predicted_char  # AI-generated joke
+    await update.message.reply_text(generated_joke)
 
-# Main bot setup
+# Telegram bot setup
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("joke", joke))
 
-    print("Bot is running...")
+    print("AI Joke Bot is running...")
     app.run_polling()
 
 if __name__ == "__main__":
