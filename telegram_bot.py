@@ -1,20 +1,26 @@
 import torch
+import pandas as pd
 import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
-from train_model import JokeModel, joke_to_tensor, vocab_size  # Import AI model functions
+from train_model import JokeModel, joke_to_tensor, vocab_size
 
-# Load the trained AI model
+# Load joke dataset
+data = pd.read_csv("jokes.csv")
+joke_setups = list(data["Joke"])[:10]  # Pick first 10 jokes as input prompts
+
+# Load trained AI model
 model = JokeModel(vocab_size, embed_size=128, hidden_size=256, output_size=100)
 model.load_state_dict(torch.load("joke_model.pth"))
 model.eval()  # Set model to evaluation mode
 
-# Function to generate AI jokes
+# Function to generate AI-powered jokes
 async def joke(update: Update, context: CallbackContext):
-    input_tensor = joke_to_tensor("Why did the chicken ", vocab_size)  # Example setup
+    input_joke = joke_setups[torch.randint(0, len(joke_setups), (1,)).item()]
+    input_tensor = joke_to_tensor(input_joke[:20], vocab_size)  # Use first 20 characters as seed
     output = model(input_tensor.unsqueeze(0))
     predicted_char = chr(output.argmax().item())
-    generated_joke = "Why did the chicken " + predicted_char  # AI-generated joke
+    generated_joke = input_joke + predicted_char  # AI-generated joke extension
     await update.message.reply_text(generated_joke)
 
 # Telegram bot setup
