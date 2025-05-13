@@ -1,5 +1,6 @@
-python-telegram-bot==22.0
-flask
-gunicorn
 torch
-kagglehub
+transformers
+pandas
+numpy
+python-telegram-bot
+flask
